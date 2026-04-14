@@ -2831,8 +2831,6 @@
     const fname = `Adherents_YELLITAARE_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.xlsx`;
     XLSX.writeFile(wb, fname);
     showToast(`✓ Export XLSX généré : ${fname}`);
-  }// --- LOGIQUE DE FUSION ET CORRECTION ADHÉSION ---
-
 /**
  * Correction du bug "Extérieur" : 
  * Force l'enregistrement correct du profil et la redirection immédiate.
