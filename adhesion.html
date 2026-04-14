@@ -2831,7 +2831,54 @@
     const fname = `Adherents_YELLITAARE_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.xlsx`;
     XLSX.writeFile(wb, fname);
     showToast(`✓ Export XLSX généré : ${fname}`);
-  }
+  }// --- LOGIQUE DE FUSION ET CORRECTION ADHÉSION ---
+
+/**
+ * Correction du bug "Extérieur" : 
+ * Force l'enregistrement correct du profil et la redirection immédiate.
+ */
+function finaliserAdhesionFusionnee(donneesFormulaire) {
+    // 1. Récupération de la base existante
+    let db = [];
+    try {
+        db = JSON.parse(localStorage.getItem('yellitaare_adherents_v1') || '[]');
+    } catch(e) { console.error("Erreur DB", e); }
+
+    // 2. Création du membre avec distinction Extérieur/Local
+    const estExterieur = donneesFormulaire.zone === 'Extérieur';
+    const nouveauMembre = {
+        ...donneesFormulaire,
+        reference: "YT-" + Math.random().toString(36).substr(2, 6).toUpperCase(),
+        date_adhesion: new Date().toISOString(),
+        statut: estExterieur ? 'A confirmer (International)' : 'Actif'
+    };
+
+    // 3. Sauvegarde centralisée (C'est ici que la fusion opère)
+    db.push(nouveauMembre);
+    localStorage.setItem('yellitaare_adherents_v1', JSON.stringify(db));
+
+    // 4. Initialisation automatique de la session pour éviter le blocage de l'espace membre
+    sessionStorage.setItem('yt_session_ref', nouveauMembre.reference);
+    sessionStorage.setItem('yt_session_nom', nouveauMembre.prenom + ' ' + nouveauMembre.nom);
+
+    return nouveauMembre.reference;
+}
+
+/**
+ * Correction de la barrière d'accès (Espace Membre)
+ */
+function verifierAccesFusionne() {
+    const ref = sessionStorage.getItem('yt_session_ref');
+    const overlay = document.getElementById('gate-overlay');
+    
+    if (!ref && overlay) {
+        overlay.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    } else if (ref) {
+        // Si déjà connecté, on cache automatiquement la barrière
+        if(overlay) overlay.classList.remove('show');
+    }
+}
 </script>
 </body>
 </html>
